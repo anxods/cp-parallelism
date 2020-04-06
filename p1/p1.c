@@ -27,9 +27,8 @@ int main(int argc, char *argv[]){
 
         // Only let the process #0 access this part of the code
         if (procID == 0){
-            printf("Enter the maximum number to check for primes: (0 quits) \n");
+            printf(" - Enter the maximum number to check for primes: (0 quits) \n");
             scanf("%d",&n);
-            printf("Proc %d", procID);
 
             for (procs = 1; procs<numprocs; procs++)
                 // int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
@@ -43,27 +42,37 @@ int main(int argc, char *argv[]){
         
         if (n == 0) break;
 
+        // valid input to check primes
         if (n > 0){
 
-        }
-
-        // computation number of primes
-        count = 0;
-
-        for (i = 2; i < n; i++) {
-            prime = 1;
-
-            // Check if any number lower than i is multiple
-            for (j = 2; j < i; j++) {
-                if((i%j) == 0) {
-                prime = 0;
-                break;
+            // computation number of primes
+            count = 0;
+            
+            for (i = 2; i < n; i++) {
+                prime = 1;
+            
+                // Check if any number lower than i is multiple
+                for (j = 2; j < i; j++) {
+                    if((i%j) == 0) {
+                    prime = 0;
+                    break;
+                    }
                 }
+                count += prime;
             }
-            count += prime;
+
+            if (procID!=0){
+                MPI_Send(&count, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+            } else { // output must be performed by process #0
+                printf("The number of primes lower than %d is %d (process %d)\n", n, count, procID);
+                printf("\n");
+	    }
+
+        } else {
+            printf("Error: invalid input number (negative)\n");
+	    printf("\n");
         }
 
-        printf("The number of primes lower than %d is %d\n", n, count);
     }
 
     MPI_Finalize();
