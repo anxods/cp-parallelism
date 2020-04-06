@@ -1,4 +1,4 @@
-# cp-p4
+# cp-parallelism
 
 ## 1st exercise: Calculation of the number of primes lower than a certain value
 
