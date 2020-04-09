@@ -2,6 +2,11 @@
 
 ## 2nd exercise: Calculation of the number of primes lower than a certain value. Use of MPI Collective Communication
 
+We must implement three versions of the program:
+- [x] With MPI_Bcast and MPI_Reduce operations.
+- [ ] Creating MPI_FlattreeColective operation (which basically is the for loop of the p1 but adding the option of selecting which process we want the root to be).
+- [ ] Creating MPI_BinomialColective operation (same as before but with a binomial tree behaviour).
+
 Given code
 ```c
 #include <stdio.h>
