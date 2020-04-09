@@ -74,13 +74,14 @@ int main(int argc, char *argv[]){
             
             } else { // output must be performed by process #0
 
+                // proc #0 receives the results calculated by the other procs
                 for (i = 1; i < numprocs; i++){
                     MPI_Recv(&aux, 1, MPI_INT, i, 0, MPI_COMM_WORLD, &status);
-                                        count += aux;
+                    count += aux;
                 }
 
                 printf("The number of primes lower than %d is %d (process %d)\n", n, count, procID);
-                }
+            }
 
         } else {
             printf("Error: invalid input number (negative)\n");
