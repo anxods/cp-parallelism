@@ -32,12 +32,13 @@ int main(int argc, char *argv[]){
 ```
 Parallelization ToDo List:
 
-- [ ] SPMD implementation
+- [x] SPMD implementation
 
 - [x] I/O (scanf/printf) is made by process 0
 
 - [x] Distribute n to all the processes (with Send/Recv)
 
-- [ ] Divide the workload of the for loop with “step” i+=numprocs instead of i++
+- [x] Divide the workload of the for loop with “step” i+=numprocs instead of i++
 
 - [ ] Gather the number of primes detected by each process (with Send/Recv)
+no se si este ultimo se refiere a que lo pongamos como una linea de output o a los receive y send que ya estan puestos
