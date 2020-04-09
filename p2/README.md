@@ -1,6 +1,7 @@
 # cp-parallelism
 
-## 1st exercise: Calculation of the number of primes lower than a certain value
+## 2nd exercise: Calculation of the number of primes lower than a certain value (with improvements)
+## Use of MPI Collective Communication
 
 Given code
 ```c
@@ -32,13 +33,12 @@ int main(int argc, char *argv[]){
 ```
 Parallelization ToDo List:
 
-- [x] SPMD implementation
+- [ ] SPMD implementation
 
 - [x] I/O (scanf/printf) is made by process 0
 
-- [x] Distribute n to all the processes (with Send/Recv)
+- [ ] Distribute n to all the processes (with Send/Recv) Now with MPI collective operation!
 
 - [x] Divide the workload of the for loop with “step” i+=numprocs instead of i++
 
-- [ ] Gather the number of primes detected by each process (with Send/Recv)
-no se si este ultimo se refiere a que lo pongamos como una linea de output o a los receive y send que ya estan puestos
+- [ ] Gather the number of primes detected by each process (with Send/Recv) Now with MPI collective operation!
