@@ -5,11 +5,9 @@
 
 int main(int argc, char *argv[]){
 
-    int i, j, prime, done = 0, n, count;
+    int i, j, prime, done = 0, n, count, global_count;
 
-    int numprocs, procID, aux;
-
-    MPI_Status status;
+    int numprocs, procID;
 
     // Initialize the MPI with MPI_Init
     // MPI_Init - Initializes the MPI execution environment 
@@ -29,16 +27,11 @@ int main(int argc, char *argv[]){
         if (procID == 0){
             printf("Enter the maximum number to check for primes: (0 quits) \n");
             scanf("%d",&n);
-
-            for (i = 1; i<numprocs; i++)
-                // int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
-                // MPI_Send - Performs a standard-mode blocking send.
-                MPI_Send(&n, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
-        } else {
-            // int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm, MPI_Status *status)
-            // MPI_Recv - Performs a standard-mode blocking receive.
-            MPI_Recv(&n, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
         }
+
+        // int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm)
+        // Broadcasts a message from the process with rank root to all other processes of the group.
+        MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
         
         if (n == 0) break;
 
@@ -68,19 +61,14 @@ int main(int argc, char *argv[]){
                 count += prime;
             }
 
-            if (procID!=0){
+            // Reduces values on all processes within a group.
+            // int MPI_Reduce(const void *sendbuf, void *recvbuf, int count,
+            //        MPI_Datatype datatype, MPI_Op op, int root,
+            //        MPI_Comm comm)
+            MPI_Reduce(&count, &global_count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
-                MPI_Send(&count, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
-            
-            } else { // output must be performed by process #0
-
-                // proc #0 receives the results calculated by the other procs
-                for (i = 1; i < numprocs; i++){
-                    MPI_Recv(&aux, 1, MPI_INT, i, 0, MPI_COMM_WORLD, &status);
-                    count += aux;
-                }
-
-                printf("The number of primes lower than %d is %d (process %d)\n", n, count, procID);
+            if (procID == 0){
+                printf("The number of primes lower than %d is %d (process %d)\n", n, global_count, procID);
             }
 
         } else {
