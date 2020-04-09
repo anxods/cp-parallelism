@@ -4,6 +4,10 @@
 
 Given code
 ```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
 int main(int argc, char *argv[]){
   int i, j, prime, done = 0, n, count;
     while (!done){
