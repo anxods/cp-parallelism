@@ -1,7 +1,6 @@
 # cp-parallelism
 
-## 2nd exercise: Calculation of the number of primes lower than a certain value (with improvements)
-## Use of MPI Collective Communication
+## 2nd exercise: Calculation of the number of primes lower than a certain value. Use of MPI Collective Communication
 
 Given code
 ```c
