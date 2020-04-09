@@ -30,9 +30,9 @@ Parallelization ToDo List:
 
 - [ ] SPMD implementation
 
-- [ ] I/O (scanf/printf) is made by process 0
+- [x] I/O (scanf/printf) is made by process 0
 
-- [ ] Distribute n to all the processes (with Send/Recv)
+- [x] Distribute n to all the processes (with Send/Recv)
 
 - [ ] Divide the workload of the for loop with “step” i+=numprocs instead of i++
 
