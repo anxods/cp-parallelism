@@ -7,7 +7,11 @@ We must implement three versions of the program:
 - [ ] Creating MPI_FlattreeColective operation (which basically is the for loop of the p1 but adding the option of selecting which process we want the root to be).
 - [x] Creating MPI_BinomialColective operation (same as before but with a binomial tree behaviour).
 
-Given code
+#### Notes
+
+To compile the p2v3.c (which includes the MPI_BinomialColective function), we must put -lm flag, as it includes mathematical operations such as log, pow...
+
+### Given code
 ```c
 #include <stdio.h>
 #include <stdlib.h>
