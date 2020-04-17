@@ -5,7 +5,7 @@
 We must implement three versions of the program:
 - [x] With MPI_Bcast and MPI_Reduce operations.
 - [ ] Creating MPI_FlattreeColective operation (which basically is the for loop of the p1 but adding the option of selecting which process we want the root to be).
-- [ ] Creating MPI_BinomialColective operation (same as before but with a binomial tree behaviour).
+- [x] Creating MPI_BinomialColective operation (same as before but with a binomial tree behaviour).
 
 Given code
 ```c
@@ -35,14 +35,3 @@ int main(int argc, char *argv[]){
     }
 }
 ```
-Parallelization ToDo List:
-
-- [ ] SPMD implementation
-
-- [x] I/O (scanf/printf) is made by process 0
-
-- [ ] Distribute n to all the processes (with Send/Recv) Now with MPI collective operation!
-
-- [x] Divide the workload of the for loop with “step” i+=numprocs instead of i++
-
-- [ ] Gather the number of primes detected by each process (with Send/Recv) Now with MPI collective operation!
