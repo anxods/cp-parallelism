@@ -31,14 +31,19 @@ int main(int argc, char *argv[]){
 		MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
 		MPI_Comm_rank(MPI_COMM_WORLD, &procID);
 		
+	    	// number of steps we'll need, if we have 4 procs -> 2 steps, 8 procs -> 3 steps.
+	    	// and we ceil to catch every number in between of those exact integers
 		for(i = 1; i <= ceil(log2(numprocs)); i++){ 
+			// In step “i” the processes with myrank < 2^i−1 communicate with the process myrank + 2^i−1
 			if(procID < pow(2,i-1)){
 				dest = procID + pow(2,i-1);
 				if (dest < numprocs)
 					MPI_Send(buf, count, datatype, dest, 0, comm);
-			} else {
+			} else { 
+				//otherwise we want the proc to receive the parameter from buf, and after that,
+				// this process will help our root process, transfer the buf value (in the upper part)
 				if(procID < pow(2,i)){  
-					org = procID-pow(2,i-1);
+					org = procID - pow(2,i-1);
 					MPI_Recv(buf, count, datatype, org, 0, comm, &st);
 				}
 			}
