@@ -2,8 +2,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <mpi.h>
+#include <time.h> 
 
 int main(int argc, char *argv[]){
+
+    clock_t t_ini, t_fin;
+    double secs;
 
     int i, j, prime, done = 0, n, count, global_count;
 
@@ -23,6 +27,8 @@ int main(int argc, char *argv[]){
 
     while (!done) {
 
+        t_ini = clock();
+
         // Only let the process #0 access this part of the code
         if (procID == 0){
             printf("Enter the maximum number to check for primes: (0 quits) \n");
@@ -32,6 +38,12 @@ int main(int argc, char *argv[]){
         // int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm)
         // Broadcasts a message from the process with rank root to all other processes of the group.
         MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+        t_fin = clock();
+
+        secs = (double)(t_fin - t_ini) / CLOCKS_PER_SEC;
+
+        if (procID==0) printf("Reading and sending n took: %.16g milliseconds\n", secs * 1000.0);
         
         if (n == 0) break;
 
