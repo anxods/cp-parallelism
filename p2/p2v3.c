@@ -109,6 +109,7 @@ int main(int argc, char *argv[]){
 
             if (procID == 0){
                 printf("The number of primes lower than %d is %d (process %d)\n", n, global_count, procID);
+                printf("\n");
             }
 
         } else {
