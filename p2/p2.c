@@ -73,14 +73,25 @@ int main(int argc, char *argv[]){
                 count += prime;
             }
 
+            t_ini = clock();
+
             // Reduces values on all processes within a group.
             // int MPI_Reduce(const void *sendbuf, void *recvbuf, int count,
             //        MPI_Datatype datatype, MPI_Op op, int root,
             //        MPI_Comm comm)
             MPI_Reduce(&count, &global_count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
+            t_fin = clock();
+
+            secs = (double)(t_fin - t_ini) / CLOCKS_PER_SEC;
+
+            if (procID == 0){
+                printf("Reading and sending the number of primes lower than n (count) and sending it to global_count took: %.16g milliseconds\n", secs * 1000.0);
+            }
+
             if (procID == 0){
                 printf("The number of primes lower than %d is %d (process %d)\n", n, global_count, procID);
+                printf("\n");
             }
 
         } else {
