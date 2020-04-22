@@ -25,31 +25,38 @@ int main(int argc, char *argv[]){
     // This  function  gives  the rank of the process in the particular communicator's group.
     MPI_Comm_rank(MPI_COMM_WORLD, &procID);
 
-    int MPI_BinomialColective(void *buf, int count, MPI_Datatype datatype, int root, MPI_Comm comm){
+    // We are creating a function to replace MPI_Bcast (as is the one we used before to send n
+    // to all the processes). So, we will use the following parameters for the function, taking into
+    // account the ones that conform MPI_Bcast:
+
+    // int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm)
+    // Broadcasts a message from the process with rank root to all other processes of the group.
+    int MPI_BinomialColective(void *buf, int count, MPI_Datatype dt, int root, MPI_Comm comm){
 		int i, org, dest;
 		MPI_Status st;
 		MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
 		MPI_Comm_rank(MPI_COMM_WORLD, &procID);
 		
-	    	// number of steps we'll need, if we have 4 procs -> 2 steps, 8 procs -> 3 steps.
-	    	// and we ceil to catch every number in between of those exact integers
+        // number of steps we'll need, if we have 4 procs -> 2 steps, 8 procs -> 3 steps.
+        // and we ceil to catch every number in between of those exact integers
 		for(i = 1; i <= ceil(log2(numprocs)); i++){ 
 			// In step “i” the processes with myrank < 2^i−1 communicate with the process myrank + 2^i−1
 			if(procID < pow(2,i-1)){
 				dest = procID + pow(2,i-1);
 				if (dest < numprocs)
-					MPI_Send(buf, count, datatype, dest, 0, comm);
+					MPI_Send(buf, count, dt, dest, 0, comm);
 			} else { 
-				//otherwise we want the proc to receive the parameter from buf, and after that,
+				// otherwise we want the proc to receive the parameter from buf, and after that,
 				// this process will help our root process, transfer the buf value (in the upper part)
 				if(procID < pow(2,i)){  
 					org = procID - pow(2,i-1);
-					MPI_Recv(buf, count, datatype, org, 0, comm, &st);
+					MPI_Recv(buf, count, dt, org, 0, comm, &st);
 				}
 			}
 			
 		} 
-		return 0;
+
+		return MPI_SUCCESS;
 	}
 
     while (!done) {
@@ -62,12 +69,6 @@ int main(int argc, char *argv[]){
             scanf("%d",&n);
         }
 
-        // We are creating a function to replace MPI_Bcast (as is the one we used before to send n
-        // to all the processes). So, we will use the following parameters for the function, taking into
-        // account the ones that conform MPI_Bcast:
-
-        // int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm)
-        // Broadcasts a message from the process with rank root to all other processes of the group.
         MPI_BinomialColective(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
         t_fin = clock();
