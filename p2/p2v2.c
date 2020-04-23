@@ -37,7 +37,7 @@ int main(int argc, char *argv[]){
     // 
     // Reduces values on all processes within a group.
     //
-    // As it is specified in the assignment that the MPI_Op is MPI_SUM we ommit that parameter
+    // As it is specified in the assignment that the MPI_Op is MPI_SUM we omit that parameter
 
     int MPI_FlattreeCollective(const void *sendbuf, void *recvbuf, int count, MPI_Datatype dt, int root, MPI_Comm comm){
         int i, procID, numprocs;
