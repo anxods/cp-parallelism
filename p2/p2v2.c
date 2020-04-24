@@ -52,16 +52,20 @@ int main(int argc, char *argv[]){
         if(procID != root){
             MPI_Send(sendbuf, count, dt, root, 0, comm); 
         } else { // Otherwise, we proceed to sum the values collected into a final result
-            int resulting_sum = ((int*) sendbuf)[0];
+            // we get the first address of the pointer to the sending buffer
+            int totalCount = ((int*) sendbuf)[0]; 
             
-            for (i = 0; i < numprocs; i++) {
+            // as in the p1, we sum all the resulting numbers from "i" process
+            for (i = 0; i < numprocs; i++){ 
+                // as we are sending this values to the root proc, we omit this one (as it already
+                // has its own localCount)
                 if (i != root){
                     MPI_Recv(recvbuf, count, dt, i, 0, comm, &st);
-                    resulting_sum += ((int*)recvbuf)[0];
+                    totalCount += ((int*)recvbuf)[0];
                 }
             }
             
-            ((int*)recvbuf)[0] = resulting_sum;
+            ((int*)recvbuf)[0] = totalCount;
         }             
 
         return MPI_SUCCESS;
