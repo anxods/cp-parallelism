@@ -64,7 +64,8 @@ int main(int argc, char *argv[]){
                     totalCount += ((int*)recvbuf)[0];
                 }
             }
-            
+		
+            // finally we send the obtained value to the first address position of the receiving buffer
             ((int*)recvbuf)[0] = totalCount;
         }             
 
