@@ -13,8 +13,8 @@
    C -> 1
    G -> 2
    T -> 3
-   N -> 4*/
-
+   N -> 4
+*/
 
 #define M  1000 // Number of sequences
 #define N  200000  // Number of bases per sequence
@@ -72,35 +72,37 @@ int main(int argc, char *argv[] ) {
 
 	free(data1); free(data2); free(result);
 
+	MPI_Finalize();
+
 	return 0;
 }
 
 // The distance between two bases
 int base_distance(int base1, int base2){
 
-  if((base1 == 4) || (base2 == 4)){
-    return 3;
-  }
+	if((base1 == 4) || (base2 == 4)){
+		return 3;
+	}
 
-  if(base1 == base2) {
-    return 0;
-  }
+	if(base1 == base2) {
+		return 0;
+	}
 
-  if((base1 == 0) && (base2 == 3)) {
-    return 1;
-  }
+	if((base1 == 0) && (base2 == 3)) {
+		return 1;
+	}
 
-  if((base2 == 0) && (base1 == 3)) {
-    return 1;
-  }
+	if((base2 == 0) && (base1 == 3)) {
+		return 1;
+	}
 
-  if((base1 == 1) && (base2 == 2)) {
-    return 1;
-  }
+	if((base1 == 1) && (base2 == 2)) {
+		return 1;
+	}
 
-  if((base2 == 2) && (base1 == 1)) {
-    return 1;
-  }
+	if((base2 == 2) && (base1 == 1)) {
+		return 1;
+	}
 
-  return 2;
+	return 2;
 }
