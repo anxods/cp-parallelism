@@ -1,6 +1,10 @@
+// Alessandro Aldrey Urresti - 46290561W
+// Anxo Díaz Sande - 48116657J
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <mpi.h>
 
 #define DEBUG 1
 
@@ -14,6 +18,62 @@
 
 #define M  1000 // Number of sequences
 #define N  200000  // Number of bases per sequence
+
+int main(int argc, char *argv[] ) {
+
+	int i, j;
+	int *data1, *data2;
+	int *result;
+	struct timeval  tv1, tv2;
+
+	int numprocs, procID;
+
+    MPI_Init(&argc, &argv); 
+    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &procID);
+
+	data1 = (int *) malloc(M*N*sizeof(int));
+	data2 = (int *) malloc(M*N*sizeof(int));
+	result = (int *) malloc(M*sizeof(int));
+
+	if (procID == 0){
+		/* Initialize Matrices */
+		for(i=0;i<M;i++) {
+			for(j=0;j<N;j++) {
+				data1[i*N+j] = (i+j)%5;
+				data2[i*N+j] = ((i-j)*(i-j))%5;
+			}
+		}
+	}
+
+	gettimeofday(&tv1, NULL);
+
+	for(i=0;i<M;i++) {
+		result[i]=0;
+		for(j=0;j<N;j++) {
+			result[i] += base_distance(data1[i*N+j], data2[i*N+j]);
+		}
+	}
+
+	gettimeofday(&tv2, NULL);
+
+	int microseconds = (tv2.tv_usec - tv1.tv_usec)+ 1000000 * (tv2.tv_sec - tv1.tv_sec);
+
+	if (procID == 0){
+		/*Display result */
+		if (DEBUG){
+			for(i=0;i<M;i++) {
+				printf(" %d \t ",result[i]);
+			}
+		} else {
+			printf ("Time (seconds) = %lf\n", (double) microseconds/1E6);
+		}    
+	}
+
+	free(data1); free(data2); free(result);
+
+	return 0;
+}
 
 // The distance between two bases
 int base_distance(int base1, int base2){
@@ -44,50 +104,3 @@ int base_distance(int base1, int base2){
 
   return 2;
 }
-
-int main(int argc, char *argv[] ) {
-
-  int i, j;
-  int *data1, *data2;
-  int *result;
-  struct timeval  tv1, tv2;
-
-  data1 = (int *) malloc(M*N*sizeof(int));
-  data2 = (int *) malloc(M*N*sizeof(int));
-  result = (int *) malloc(M*sizeof(int));
-
-  /* Initialize Matrices */
-  for(i=0;i<M;i++) {
-    for(j=0;j<N;j++) {
-      data1[i*N+j] = (i+j)%5;
-      data2[i*N+j] = ((i-j)*(i-j))%5;
-    }
-  }
-
-  gettimeofday(&tv1, NULL);
-
-  for(i=0;i<M;i++) {
-    result[i]=0;
-    for(j=0;j<N;j++) {
-      result[i] += base_distance(data1[i*N+j], data2[i*N+j]);
-    }
-  }
-
-  gettimeofday(&tv2, NULL);
-    
-  int microseconds = (tv2.tv_usec - tv1.tv_usec)+ 1000000 * (tv2.tv_sec - tv1.tv_sec);
-
-  /*Display result */
-  if (DEBUG){
-    for(i=0;i<M;i++) {
-      printf(" %d \t ",result[i]);
-    }
-  } else {
-    printf ("Time (seconds) = %lf\n", (double) microseconds/1E6);
-  }    
-
-  free(data1); free(data2); free(result);
-
-  return 0;
-}
-

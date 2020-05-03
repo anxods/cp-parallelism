@@ -29,9 +29,9 @@
 
 - [ ] SPMD implementation
 
-- [ ] I/O (scanf/printf) is made by process 0
+- [x] I/O (scanf/printf) is made by process 0
 
-- [ ] Process 0 performs the initialization of the matrices
+- [x] Process 0 performs the initialization of the matrices
 
 - [ ] Data is distributed to all the processes using collective operations
 
