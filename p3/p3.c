@@ -58,8 +58,6 @@ int main(int argc, char *argv[] ) {
 
 	int numprocs, procID;
 
-	int procs[numprocs];
-
     MPI_Init(&argc, &argv); 
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &procID);
@@ -67,6 +65,8 @@ int main(int argc, char *argv[] ) {
 	data1 = (int *) malloc(M*N*sizeof(int));
 	data2 = (int *) malloc(M*N*sizeof(int));
 	result = (int *) malloc(M*sizeof(int));
+
+	int procs[numprocs];
 
 	if (procID == 0){
 		/* Initialize Matrices */
@@ -93,9 +93,9 @@ int main(int argc, char *argv[] ) {
 
 	gettimeofday(&tv1, NULL);
 
-	for(i=0;i<M;i++) { // enter the sequence i
+	for(i=0; i<procs[procID]; i++) { // process entering the loop deals with its own assigned rows
 		result[i]=0;
-		for(j=0;j<N;j++) { // once we are inside the sequence i we check for the base j
+		for(j=0;j<N;j++) {
 			result[i] += base_distance(data1[i*N+j], data2[i*N+j]);
 		}
 	}
