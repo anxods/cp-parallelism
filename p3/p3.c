@@ -57,6 +57,7 @@ int main(int argc, char *argv[] ) {
 	struct timeval  tv1, tv2;
 
 	int numprocs, procID;
+	int *microseconds_total;
 
     MPI_Init(&argc, &argv); 
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
@@ -65,8 +66,7 @@ int main(int argc, char *argv[] ) {
 	data1 = (int *) malloc(M*N*sizeof(int));
 	data2 = (int *) malloc(M*N*sizeof(int));
 	result = (int *) malloc(M*sizeof(int));
-
-	int procs[numprocs];
+	microseconds_total = malloc(numprocs * sizeof(int));
 
 	if (procID == 0){
 		/* Initialize Matrices */
@@ -77,6 +77,8 @@ int main(int argc, char *argv[] ) {
 			}
 		}
 	}
+
+	int procs[numprocs];
 
 	// We need to compute the number of rows per process
 	if ((M % numprocs) == 0){ // if M is a multiple of the numprocs
@@ -91,11 +93,14 @@ int main(int argc, char *argv[] ) {
 		procs[numprocs-1] = M - assignedRows; // we assign the rest to the last process
 	}
 
+	// Once we have assigned the rows to each process, we proceed to compute the actual 
+	// base_distance between the sequences (also measuring the time):
+
 	gettimeofday(&tv1, NULL);
 
-	for(i=0; i<procs[procID]; i++) { // process entering the loop deals with its own assigned rows
+	for(i = 0; i < procs[procID]; i++) { // process entering the loop deals with its own assigned rows
 		result[i]=0;
-		for(j=0;j<N;j++) {
+		for(j = 0; j < N; j++) {
 			result[i] += base_distance(data1[i*N+j], data2[i*N+j]);
 		}
 	}
@@ -104,9 +109,14 @@ int main(int argc, char *argv[] ) {
 
 	int microseconds = (tv2.tv_usec - tv1.tv_usec)+ 1000000 * (tv2.tv_sec - tv1.tv_sec);
 
+	MPI_Gather(&microseconds, 1, MPI_INT, microseconds_total, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+	// Here we end measuring the time it took to compute the base_distance, assigning to it the 
+	// value "microseconds"
+
 	if (procID == 0){
 		/*Display result */
-		if (DEBUG){
+		if (!DEBUG){
 			for(i=0;i<M;i++) {
 				printf(" %d \t ",result[i]);
 			}
@@ -114,6 +124,15 @@ int main(int argc, char *argv[] ) {
 		} else {
 			printf ("Time (seconds) = %lf\n", (double) microseconds/1E6);
 		}    
+	}
+
+	// Last task is to show the microseconds it took each process to:
+	// 1st: to compute the actual distances (microseconds)
+	// 2nd: the communication between processes, that is, the collective operations to send the values
+	// 		()
+	if (procID == 0){
+		for(i=0;i<numprocs;i++)
+			printf("Time it took to do the computation of the base_distances for process %i is %lf seconds\n", i, (double) microseconds_total[i]/1E6);
 	}
 
 	free(data1); free(data2); free(result);
