@@ -16,8 +16,8 @@
    N -> 4
 */
 
-#define M  3 // Number of sequences
-#define N  3  // Number of bases per sequence
+#define M  1000 // Number of sequences
+#define N  1000  // Number of bases per sequence
 
 // The distance between two bases
 int base_distance(int base1, int base2){
@@ -122,20 +122,23 @@ int main(int argc, char *argv[] ) {
 			}
 			printf("\n");
 		} else {
-			printf ("Time (seconds) = %lf\n", (double) microseconds/1E6);
+			// Last task is to show the microseconds it took each process to:
+			// 1st: to compute the actual distances (microseconds)
+			// 2nd: the communication between processes, that is, the collective operations to send the values
+			// 		()
+			if (procID == 0){
+				int microseconds_comp_total;
+				for(i = 0; i < numprocs; i++){
+					printf("Computation time for process %i is %lf microseconds\n", i, (double) microseconds_total[i]/1E6);
+					microseconds_comp_total += microseconds_total[i];
+				}
+
+				printf("Total computation time was: %lf\n", (double) microseconds_comp_total/1E6);
+			}
 		}    
 	}
 
-	// Last task is to show the microseconds it took each process to:
-	// 1st: to compute the actual distances (microseconds)
-	// 2nd: the communication between processes, that is, the collective operations to send the values
-	// 		()
-	if (procID == 0){
-		for(i=0;i<numprocs;i++)
-			printf("Time it took to do the computation of the base_distances for process %i is %lf seconds\n", i, (double) microseconds_total[i]/1E6);
-	}
-
-	free(data1); free(data2); free(result);
+	free(data1); free(data2); free(result); free(microseconds_total);
 
 	MPI_Finalize();
 
