@@ -27,7 +27,7 @@
 
 ## Parallel approach
 
-- [ ] SPMD implementation
+- [x] SPMD implementation
 
 - [x] I/O (scanf/printf) is made by process 0
 
@@ -37,7 +37,9 @@
 
 - [ ] Gather the result using collective operations
 
-- [ ] Print separately the communication time and the computation time of each process
+- [ ] Print separately the communication time...
+
+- [x] ... and the computation time of each process
 
 ### Given code
 ```c
