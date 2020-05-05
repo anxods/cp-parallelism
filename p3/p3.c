@@ -19,6 +19,8 @@
 #define M  1000 // Number of sequences
 #define N  1000  // Number of bases per sequence
 
+#define ROOT 0
+
 // The distance between two bases
 int base_distance(int base1, int base2){
 
@@ -109,7 +111,7 @@ int main(int argc, char *argv[] ) {
 
 	int microseconds = (tv2.tv_usec - tv1.tv_usec)+ 1000000 * (tv2.tv_sec - tv1.tv_sec);
 
-	MPI_Gather(&microseconds, 1, MPI_INT, microseconds_total, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Gather(&microseconds, 1, MPI_INT, microseconds_total, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
 
 	// Here we end measuring the time it took to compute the base_distance, assigning to it the 
 	// value "microseconds"
