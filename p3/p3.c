@@ -8,16 +8,17 @@
 
 #define DEBUG 1
 
-/* Translation of the DNA bases
-   A -> 0
-   C -> 1
-   G -> 2
-   T -> 3
-   N -> 4
+/* 
+	Translation of the DNA bases
+	A -> 0
+	C -> 1
+	G -> 2
+	T -> 3
+	N -> 4
 */
 
 #define M  1000 // Number of sequences
-#define N  1000  // Number of bases per sequence
+#define N  1000 // Number of bases per sequence
 
 #define ROOT 0
 
@@ -56,10 +57,10 @@ int main(int argc, char *argv[] ) {
 	int i, j;
 	int *data1, *data2;
 	int *result;
-	struct timeval  tv1, tv2;
+	struct timeval  tv1, tv2, tv1_1, tv2_1;
 
 	int numprocs, procID;
-	int *microseconds_total;
+	int *microseconds_total, *result_total, *microsecondsResultTotal;
 
     MPI_Init(&argc, &argv); 
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
@@ -68,7 +69,9 @@ int main(int argc, char *argv[] ) {
 	data1 = (int *) malloc(M*N*sizeof(int));
 	data2 = (int *) malloc(M*N*sizeof(int));
 	result = (int *) malloc(M*sizeof(int));
-	microseconds_total = malloc(numprocs * sizeof(int));
+	microseconds_total = malloc(numprocs *sizeof(int));
+	result_total = malloc(numprocs *sizeof(int));
+	microsecondsResultTotal = malloc(numprocs *sizeof(int));
 
 	if (procID == 0){
 		/* Initialize Matrices */
@@ -85,7 +88,7 @@ int main(int argc, char *argv[] ) {
 	// We need to compute the number of rows per process
 	if ((M % numprocs) == 0){ // if M is a multiple of the numprocs
 		for (i=0; i<numprocs; i++)
-			procs[i] = N / numprocs; // we assign the number of 
+			procs[i] = N / numprocs; // we assign the number of
 	} else { // case it is not a multiple
 		for (i=0; i<numprocs-1; i++)
 			procs[i] = N / numprocs + 1; // (as if we were using a floor, but getting an integer)
@@ -116,6 +119,16 @@ int main(int argc, char *argv[] ) {
 	// Here we end measuring the time it took to compute the base_distance, assigning to it the 
 	// value "microseconds"
 
+	gettimeofday(&tv1_1, NULL);
+
+	MPI_Gather(&result, 1, MPI_INT, result_total, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
+
+	gettimeofday(&tv2_1, NULL);
+
+	int microsecondsResult = (tv2_1.tv_usec - tv1_1.tv_usec)+ 1000000 * (tv2_1.tv_sec - tv1_1.tv_sec);
+
+	MPI_Gather(&microsecondsResult, 1, MPI_INT, microsecondsResultTotal, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
+
 	if (procID == 0){
 		/*Display result */
 		if (!DEBUG){
@@ -129,18 +142,35 @@ int main(int argc, char *argv[] ) {
 			// 2nd: the communication between processes, that is, the collective operations to send the values
 			// 		()
 			if (procID == 0){
-				int microseconds_comp_total;
+				printf("Times of both the computation and communication of processes used in execution:\n\n");
+				// Computation time
+				int microseconds_comp_total = 0;
 				for(i = 0; i < numprocs; i++){
-					printf("Computation time for process %i is %lf microseconds\n", i, (double) microseconds_total[i]/1E6);
+					printf("Computation time for process %i was %lf microseconds\n", i, (double) microseconds_total[i]/1E6);
 					microseconds_comp_total += microseconds_total[i];
 				}
 
-				printf("Total computation time was: %lf\n", (double) microseconds_comp_total/1E6);
+				printf("Total computation time was: %lf microseconds\n\n", (double) microseconds_comp_total/1E6);
+
+				// Communication time
+				int microseconds_result_total = 0;
+				for(i = 0; i < numprocs; i++){
+					printf("Communication time for process %i was %lf microseconds\n", i, (double) microsecondsResultTotal[i]/1E6);
+					microseconds_result_total += microsecondsResultTotal[i];
+				}
+
+				printf("Total communication time was: %lf microseconds\n", (double) microseconds_result_total/1E6);
 			}
 		}    
 	}
 
-	free(data1); free(data2); free(result); free(microseconds_total);
+	// One free per malloc to every value used
+	free(data1); 
+	free(data2); 
+	free(result); 
+	free(microseconds_total); 
+	free(result_total);
+	free(microsecondsResultTotal);
 
 	MPI_Finalize();
 
