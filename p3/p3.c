@@ -17,7 +17,7 @@
 	N -> 4
 */
 
-#define M  1000 // Number of sequences
+#define M  78 // Number of sequences
 #define N  1000 // Number of bases per sequence
 
 #define ROOT 0
@@ -70,7 +70,7 @@ int main(int argc, char *argv[] ) {
 	data2 = (int *) malloc(M*N*sizeof(int));
 	result = (int *) malloc(M*sizeof(int));
 	microseconds_total = malloc(numprocs *sizeof(int));
-	result_total = malloc(numprocs *sizeof(int));
+	result_total = (int *) malloc(M*sizeof(int));
 	microsecondsResultTotal = malloc(numprocs *sizeof(int));
 
 	if (procID == 0){
@@ -84,18 +84,40 @@ int main(int argc, char *argv[] ) {
 	}
 
 	int procs[numprocs];
+	int assignedRows = 0;
 
 	// We need to compute the number of rows per process
 	if ((M % numprocs) == 0){ // if M is a multiple of the numprocs
-		for (i=0; i<numprocs; i++)
-			procs[i] = N / numprocs; // we assign the number of
-	} else { // case it is not a multiple
-		for (i=0; i<numprocs-1; i++)
-			procs[i] = N / numprocs + 1; // (as if we were using a floor, but getting an integer)
 		
-		int assignedRows = procs[0] * (numprocs-1);
+		for (i=0; i<numprocs; i++){
+			procs[i] = M / numprocs; // we assign the number of
+			assignedRows += procs[i]; 
+		}
+
+		if (procID==0) {
+			for (i=0; i<numprocs; i++)
+				printf("%d \t",procs[i]); 
+
+			printf("%d", assignedRows); 
+			printf("\n\n");
+		}
+
+	} else { // case it is not a multiple
+		
+		for (i=0; i<numprocs-1; i++){
+			procs[i] = M / numprocs + 1; // (as if we were using a floor, but getting an integer)
+			assignedRows += procs[i]; 
+		}
 
 		procs[numprocs-1] = M - assignedRows; // we assign the rest to the last process
+		if (procID==0) {
+			for (i=0; i<numprocs; i++)
+				printf("%d \t",procs[i]); 
+
+			printf("%d", assignedRows + procs[numprocs-1]); 
+			printf("\n\n");
+		}
+	
 	}
 
 	// Once we have assigned the rows to each process, we proceed to compute the actual 
@@ -121,7 +143,7 @@ int main(int argc, char *argv[] ) {
 
 	gettimeofday(&tv1_1, NULL);
 
-	MPI_Gather(&result, 1, MPI_INT, result_total, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
+	MPI_Gather(result, procs[procID], MPI_INT, result_total, procs[procID], MPI_INT, ROOT, MPI_COMM_WORLD);	
 
 	gettimeofday(&tv2_1, NULL);
 
@@ -133,7 +155,7 @@ int main(int argc, char *argv[] ) {
 		/*Display result */
 		if (!DEBUG){
 			for(i=0;i<M;i++) {
-				printf(" %d \t ",result[i]);
+				printf(" %d \t ",result_total[i]);
 			}
 			printf("\n");
 		} else {
