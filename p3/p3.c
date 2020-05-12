@@ -86,42 +86,52 @@ int main(int argc, char *argv[] ) {
 	int procs[numprocs];
 	int assignedRows = 0;
 
-	// We need to compute the number of rows per process
-	if ((M % numprocs) == 0){ // if M is a multiple of the numprocs
-		
-		for (i=0; i<numprocs; i++){
-			procs[i] = M / numprocs; // we assign the number of
-			assignedRows += procs[i]; 
-		}
-
-		if (procID==0) {
-			printf("- Assigned rows: \n");
+	if (procID == ROOT){
+		// We need to compute the number of rows per process
+		if ((M % numprocs) == 0){ // if M is a multiple of the numprocs
 			
-			for (i=0; i<numprocs; i++)
-				printf(" Process %d: %d \n",i,procs[i]); 
+			for (i=0; i<numprocs; i++){
+				procs[i] = M / numprocs; // we assign the number of
+				assignedRows += procs[i]; 
+			}
 
-			printf(" Total: %d", assignedRows); 
-			printf("\n\n");
+			/* Just to check if it was working properly
+			if (procID==0) {
+				printf("- Assigned rows: \n");
+				
+				for (i=0; i<numprocs; i++)
+					printf(" Process %d: %d \n",i,procs[i]); 
+
+				printf(" Total: %d", assignedRows); 
+				printf("\n\n");
+			}
+			*/
+
+		} else { // case it is not a multiple
+			
+			for (i=0; i<numprocs-1; i++){
+				procs[i] = M / numprocs + 1; // (as if we were using a floor, but getting an integer)
+				assignedRows += procs[i]; 
+			}
+
+			procs[numprocs-1] = M - assignedRows; // we assign the rest to the last process
+			
+			/* Just to check if it was working properly
+			if (procID==0) {
+				printf("- Assigned rows: \n");
+				for (i=0; i<numprocs; i++)
+					printf(" Process %d: %d \n",i,procs[i]); 
+
+				printf(" Total: %d", assignedRows + procs[numprocs-1]); 
+				printf("\n\n");
+			}
+			*/
 		}
-
-	} else { // case it is not a multiple
-		
-		for (i=0; i<numprocs-1; i++){
-			procs[i] = M / numprocs + 1; // (as if we were using a floor, but getting an integer)
-			assignedRows += procs[i]; 
-		}
-
-		procs[numprocs-1] = M - assignedRows; // we assign the rest to the last process
-		if (procID==0) {
-			printf("- Assigned rows: \n");
-			for (i=0; i<numprocs; i++)
-				printf(" Process %d: %d \n",i,procs[i]); 
-
-			printf(" Total: %d", assignedRows + procs[numprocs-1]); 
-			printf("\n\n");
-		}
-	
 	}
+
+	// Once the root process got the array with the number of rows assigned to each process (including itself)
+	// we send this to all the processes, with MPI_Bcast.
+	MPI_Bcast(&procs, numprocs, MPI_INT, ROOT, MPI_COMM_WORLD);
 
 	// Once we have assigned the rows to each process, we proceed to compute the actual 
 	// base_distance between the sequences (also measuring the time):
