@@ -17,8 +17,8 @@
 	N -> 4
 */
 
-#define M  78 // Number of sequences
-#define N  1000 // Number of bases per sequence
+#define M  10000 // Number of sequences
+#define N  10 // Number of bases per sequence
 
 #define ROOT 0
 
@@ -95,10 +95,12 @@ int main(int argc, char *argv[] ) {
 		}
 
 		if (procID==0) {
+			printf("- Assigned rows: \n");
+			
 			for (i=0; i<numprocs; i++)
-				printf("%d \t",procs[i]); 
+				printf(" Process %d: %d \n",i,procs[i]); 
 
-			printf("%d", assignedRows); 
+			printf(" Total: %d", assignedRows); 
 			printf("\n\n");
 		}
 
@@ -111,10 +113,11 @@ int main(int argc, char *argv[] ) {
 
 		procs[numprocs-1] = M - assignedRows; // we assign the rest to the last process
 		if (procID==0) {
+			printf("- Assigned rows: \n");
 			for (i=0; i<numprocs; i++)
-				printf("%d \t",procs[i]); 
+				printf(" Process %d: %d \n",i,procs[i]); 
 
-			printf("%d", assignedRows + procs[numprocs-1]); 
+			printf(" Total: %d", assignedRows + procs[numprocs-1]); 
 			printf("\n\n");
 		}
 	
@@ -142,7 +145,7 @@ int main(int argc, char *argv[] ) {
 	// value "microseconds"
 
 	gettimeofday(&tv1_1, NULL);
-
+	
 	MPI_Gather(result, procs[procID], MPI_INT, result_total, procs[procID], MPI_INT, ROOT, MPI_COMM_WORLD);	
 
 	gettimeofday(&tv2_1, NULL);
@@ -155,7 +158,7 @@ int main(int argc, char *argv[] ) {
 		/*Display result */
 		if (!DEBUG){
 			for(i=0;i<M;i++) {
-				printf(" %d \t ",result_total[i]);
+				printf(" %d \t ", result_total[i]);
 			}
 			printf("\n");
 		} else {
@@ -187,12 +190,14 @@ int main(int argc, char *argv[] ) {
 	}
 
 	// One free per malloc to every value used
-	free(data1); 
-	free(data2); 
-	free(result); 
-	free(microseconds_total); 
-	free(result_total);
-	free(microsecondsResultTotal);
+	if (procID == 0){
+		free(data1); 
+		free(data2); 
+		free(result); 
+		free(microseconds_total); 
+		free(result_total);
+		free(microsecondsResultTotal);
+	}
 
 	MPI_Finalize();
 
