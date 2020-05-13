@@ -17,7 +17,7 @@
 	N -> 4
 */
 
-#define M  10// Number of sequences
+#define M  10 // Number of sequences
 #define N  10 // Number of bases per sequence
 
 #define ROOT 0
@@ -57,10 +57,10 @@ int main(int argc, char *argv[] ) {
 	int i, j;
 	int *data1, *data2;
 	int *result;
-	struct timeval  tv1, tv2, tv1_1, tv2_1;
+	struct timeval  tv1, tv2, tv1_1, tv2_1, tvi, tvf;
 
 	int numprocs, procID;
-	int *microseconds_total, *result_total, *microsecondsResultTotal;
+	int *microsecondsCompTotal, *result_total, *microsecondsCommTotal;
 
     MPI_Init(&argc, &argv); 
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
@@ -69,9 +69,9 @@ int main(int argc, char *argv[] ) {
 	data1 = (int *) malloc(M*N*sizeof(int));
 	data2 = (int *) malloc(M*N*sizeof(int));
 	result = (int *) malloc(M*sizeof(int));
-	microseconds_total = malloc(numprocs *sizeof(int));
+	microsecondsCompTotal = malloc(numprocs *sizeof(int));
 	result_total = (int *) malloc(M*sizeof(int));
-	microsecondsResultTotal = malloc(numprocs *sizeof(int));
+	microsecondsCommTotal = malloc(numprocs *sizeof(int));
 
 	if (procID == 0){
 		/* Initialize Matrices */
@@ -130,9 +130,15 @@ int main(int argc, char *argv[] ) {
 		}
 	}
 
+	gettimeofday(&tvi, NULL);
+
 	// Once the root process got the array with the number of rows assigned to each process (including itself)
 	// we send this to all the processes, with MPI_Scatter.
 	MPI_Scatter(&procs, 1, MPI_INT, &rows, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
+
+	gettimeofday(&tvf, NULL);
+
+	int microsecondsScatter = (tvf.tv_usec - tvi.tv_usec)+ 1000000 * (tvf.tv_sec - tvi.tv_sec);
 
 	// Once we have assigned the rows to each process, we proceed to compute the actual 
 	// base_distance between the sequences (also measuring the time):
@@ -150,7 +156,7 @@ int main(int argc, char *argv[] ) {
 
 	int microseconds = (tv2.tv_usec - tv1.tv_usec)+ 1000000 * (tv2.tv_sec - tv1.tv_sec);
 
-	MPI_Gather(&microseconds, 1, MPI_INT, microseconds_total, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
+	MPI_Gather(&microseconds, 1, MPI_INT, microsecondsCompTotal, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
 
 	// Here we end measuring the time it took to compute the base_distance, assigning to it the 
 	// value "microseconds"
@@ -161,13 +167,15 @@ int main(int argc, char *argv[] ) {
 
 	gettimeofday(&tv2_1, NULL);
 
-	int microsecondsResult = (tv2_1.tv_usec - tv1_1.tv_usec)+ 1000000 * (tv2_1.tv_sec - tv1_1.tv_sec);
+	int microsecondsGather = (tv2_1.tv_usec - tv1_1.tv_usec)+ 1000000 * (tv2_1.tv_sec - tv1_1.tv_sec);
 
-	MPI_Gather(&microsecondsResult, 1, MPI_INT, microsecondsResultTotal, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
+	int microsecondsComm = microsecondsGather + microsecondsScatter;
+
+	MPI_Gather(&microsecondsComm, 1, MPI_INT, microsecondsCommTotal, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
 
 	if (procID == 0){
 		/*Display result */
-		if (DEBUG){
+		if (!DEBUG){
 			for(i=0;i<M;i++) {
 				printf(" %d \t ", result_total[i]);
 			}
@@ -182,20 +190,20 @@ int main(int argc, char *argv[] ) {
 				// Computation time
 				int microseconds_comp_total = 0;
 				for(i = 0; i < numprocs; i++){
-					printf("Computation time for process %i was %lf microseconds\n", i, (double) microseconds_total[i]/1E6);
-					microseconds_comp_total += microseconds_total[i];
+					printf("Computation time for process %i was %lf microseconds\n", i, (double) microsecondsCompTotal[i]/1E6);
+					microseconds_comp_total += microsecondsCompTotal[i];
 				}
 
 				printf("Total computation time was: %lf microseconds\n\n", (double) microseconds_comp_total/1E6);
 
 				// Communication time
-				int microseconds_result_total = 0;
+				int microseconds_comm_total = 0;
 				for(i = 0; i < numprocs; i++){
-					printf("Communication time for process %i was %lf microseconds\n", i, (double) microsecondsResultTotal[i]/1E6);
-					microseconds_result_total += microsecondsResultTotal[i];
+					printf("Communication time for process %i was %lf microseconds\n", i, (double) microsecondsCommTotal[i]/1E6);
+					microseconds_comm_total += microsecondsCommTotal[i];
 				}
 
-				printf("Total communication time was: %lf microseconds\n", (double) microseconds_result_total/1E6);
+				printf("Total communication time was: %lf microseconds\n", (double) microseconds_comm_total/1E6);
 			}
 		}    
 	}
@@ -205,9 +213,9 @@ int main(int argc, char *argv[] ) {
 		free(data1); 
 		free(data2); 
 		free(result); 
-		free(microseconds_total); 
+		free(microsecondsCompTotal); 
 		free(result_total);
-		free(microsecondsResultTotal);
+		free(microsecondsCommTotal);
 	}
 
 	MPI_Finalize();
