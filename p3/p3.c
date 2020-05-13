@@ -17,7 +17,7 @@
 	N -> 4
 */
 
-#define M  10000 // Number of sequences
+#define M  10// Number of sequences
 #define N  10 // Number of bases per sequence
 
 #define ROOT 0
@@ -84,6 +84,7 @@ int main(int argc, char *argv[] ) {
 	}
 
 	int procs[numprocs];
+	int rows = 0;
 	int assignedRows = 0;
 
 	if (procID == ROOT){
@@ -130,15 +131,15 @@ int main(int argc, char *argv[] ) {
 	}
 
 	// Once the root process got the array with the number of rows assigned to each process (including itself)
-	// we send this to all the processes, with MPI_Bcast.
-	MPI_Bcast(&procs, numprocs, MPI_INT, ROOT, MPI_COMM_WORLD);
+	// we send this to all the processes, with MPI_Scatter.
+	MPI_Scatter(&procs, 1, MPI_INT, &rows, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
 
 	// Once we have assigned the rows to each process, we proceed to compute the actual 
 	// base_distance between the sequences (also measuring the time):
 
 	gettimeofday(&tv1, NULL);
 
-	for(i = 0; i < procs[procID]; i++) { // process entering the loop deals with its own assigned rows
+	for(i = 0; i < rows; i++) { // process entering the loop deals with its own assigned rows
 		result[i]=0;
 		for(j = 0; j < N; j++) {
 			result[i] += base_distance(data1[i*N+j], data2[i*N+j]);
@@ -156,7 +157,7 @@ int main(int argc, char *argv[] ) {
 
 	gettimeofday(&tv1_1, NULL);
 	
-	MPI_Gather(result, procs[procID], MPI_INT, result_total, procs[procID], MPI_INT, ROOT, MPI_COMM_WORLD);	
+	MPI_Gather(result, rows, MPI_INT, result_total, rows, MPI_INT, ROOT, MPI_COMM_WORLD);	
 
 	gettimeofday(&tv2_1, NULL);
 
@@ -166,7 +167,7 @@ int main(int argc, char *argv[] ) {
 
 	if (procID == 0){
 		/*Display result */
-		if (!DEBUG){
+		if (DEBUG){
 			for(i=0;i<M;i++) {
 				printf(" %d \t ", result_total[i]);
 			}
