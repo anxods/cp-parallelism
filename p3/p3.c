@@ -17,8 +17,8 @@
 	N -> 4
 */
 
-#define M  10 // Number of sequences
-#define N  10 // Number of bases per sequence
+#define M  1000 // Number of sequences
+#define N  1000 // Number of bases per sequence
 
 #define ROOT 0
 
@@ -83,7 +83,7 @@ int main(int argc, char *argv[] ) {
 		}
 	}
 
-	int procs[numprocs];
+	int rowsArray[numprocs];
 	int rows = 0;
 	int assignedRows = 0;
 
@@ -92,8 +92,8 @@ int main(int argc, char *argv[] ) {
 		if ((M % numprocs) == 0){ // if M is a multiple of the numprocs
 			
 			for (i=0; i<numprocs; i++){
-				procs[i] = M / numprocs; // we assign the number of
-				assignedRows += procs[i]; 
+				rowsArray[i] = M / numprocs; // we assign the number of
+				assignedRows += rowsArray[i]; 
 			}
 
 			/* Just to check if it was working properly
@@ -111,11 +111,11 @@ int main(int argc, char *argv[] ) {
 		} else { // case it is not a multiple
 			
 			for (i=0; i<numprocs-1; i++){
-				procs[i] = M / numprocs + 1; // (as if we were using a floor, but getting an integer)
-				assignedRows += procs[i]; 
+				rowsArray[i] = M / numprocs + 1; // (as if we were using a floor, but getting an integer)
+				assignedRows += rowsArray[i]; 
 			}
 
-			procs[numprocs-1] = M - assignedRows; // we assign the rest to the last process
+			rowsArray[numprocs-1] = M - assignedRows; // we assign the rest to the last process
 			
 			/* Just to check if it was working properly
 			if (procID==0) {
@@ -134,7 +134,7 @@ int main(int argc, char *argv[] ) {
 
 	// Once the root process got the array with the number of rows assigned to each process (including itself)
 	// we send this to all the processes, with MPI_Scatter.
-	MPI_Scatter(&procs, 1, MPI_INT, &rows, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
+	MPI_Scatter(&rowsArray, 1, MPI_INT, &rows, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
 
 	gettimeofday(&tvf, NULL);
 
@@ -186,7 +186,7 @@ int main(int argc, char *argv[] ) {
 			// 2nd: the communication between processes, that is, the collective operations to send the values
 			// 		()
 			if (procID == 0){
-				printf("Times of both the computation and communication of processes used in execution:\n\n");
+				printf("Times of both the computation and communication of processes (%d) used in execution:\n\n", numprocs);
 				// Computation time
 				int microseconds_comp_total = 0;
 				for(i = 0; i < numprocs; i++){
