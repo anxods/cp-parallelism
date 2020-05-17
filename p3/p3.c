@@ -7,7 +7,7 @@
 #include <math.h>
 #include <mpi.h>
 
-#define DEBUG 1
+#define DEBUG 0
 
 /* 
 	Translation of the DNA bases
@@ -19,7 +19,7 @@
 */
 
 #define M  1000 // Number of sequences
-#define N  1000 // Number of bases per sequence
+#define N  200000 // Number of bases per sequence
 
 #define ROOT 0
 
@@ -70,10 +70,10 @@ int main(int argc, char *argv[] ) {
 	int rows = ceil((float) M / numprocs);
 	int rowsProcess;
 
-	data1_aux = (int *) malloc(M*N*sizeof(int));
-	data1 = (int *) malloc(M*N*sizeof(int));
-	data2_aux = (int *) malloc(M*N*sizeof(int));
-	data2 = (int *) malloc(M*N*sizeof(int));
+	data1_aux = (int *) malloc(numprocs * rows *N*sizeof(int));
+	data1 = (int *) malloc(rows *N*sizeof(int));
+	data2_aux = (int *) malloc(numprocs * rows *N*sizeof(int));
+	data2 = (int *) malloc(rows *N*sizeof(int));
 	result = (int *) malloc(M*sizeof(int));
 	microsecondsCompTotal = malloc(numprocs *sizeof(int));
 	result_total = (int *) malloc(M*sizeof(int));
