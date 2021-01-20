@@ -1,6 +1,3 @@
-// Alessandro Aldrey Urresti - 46290561W
-// Anxo Díaz Sande - 48116657J
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
